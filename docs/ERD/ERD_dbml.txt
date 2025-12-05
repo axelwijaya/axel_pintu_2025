@@ -1,0 +1,74 @@
+Project axel_pintu_2025 {
+  database_type: 'PostgreSQL'
+  Note: 'Hiring assignment from PINTU'
+}
+
+//////////////////////////////////////////////////
+// CORE LAYER
+//////////////////////////////////////////////////
+
+// Dimension tables
+Table core_dim_tokens {
+  token_id varchar [pk, not null]
+  token_name varchar
+  token_category varchar
+}
+
+Table core_dim_users {
+  user_id varchar [pk, not null]
+  user_region varchar
+  user_signup_date date
+}
+
+// Fact: P2P
+Table core_fact_p2p_transfers {
+  transfer_id varchar [pk, not null]
+  sender_user_id varchar [not null]
+  receiver_user_id varchar [not null]
+  token_id varchar [not null]
+  transfer_quantity numeric(38,9)
+  transfer_status varchar
+  transfer_created_utc_datetime timestamp
+  transfer_updated_utc_datetime timestamp
+}
+
+// Fact: trades
+Table core_fact_trades {
+  trade_id varchar [pk, not null]
+  user_id varchar [not null]
+  token_id varchar [not null]
+  trade_side varchar
+  trade_price_usd numeric(38,9)
+  trade_quantity numeric(38,9)
+  trade_notional_usd numeric(38,8)
+  trade_status varchar
+  trade_created_utc_datetime timestamp
+  trade_updated_utc_datetime timestamp
+}
+
+// Fact: unified events (P2P + trades)
+Table core_fact_events {
+  event_id varchar [pk, not null, note: "Derived from trade_id or transfer_id depending on event_category"]
+  user_id varchar [not null]
+  token_id varchar [not null]
+  event_status varchar
+  event_category varchar
+  event_utc_datetime timestamp
+}
+
+//////////////////////////////////////////////////
+// RELATIONSHIPS
+//////////////////////////////////////////////////
+
+// Fact Events
+Ref: core_fact_events.user_id > core_dim_users.user_id
+Ref: core_fact_events.token_id > core_dim_tokens.token_id
+
+// Fact P2P
+Ref: core_fact_p2p_transfers.sender_user_id > core_dim_users.user_id
+Ref: core_fact_p2p_transfers.receiver_user_id > core_dim_users.user_id
+Ref: core_fact_p2p_transfers.token_id > core_dim_tokens.token_id
+
+// Fact Trades
+Ref: core_fact_trades.user_id > core_dim_users.user_id
+Ref: core_fact_trades.token_id > core_dim_tokens.token_id
