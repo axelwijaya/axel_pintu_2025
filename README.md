@@ -1,5 +1,6 @@
 # PINTU Technical Assessment
 
+DB: **DuckDB** (query syntax is mostly the same as PostgreSQL)
 
 ## Executive Summary
 
